@@ -4,21 +4,29 @@ using System.IO;
 
 class MathTestApp
 {
-    static Random random = new Random();
-    static HashSet<string> generatedQuestions = new HashSet<string>();
-    static string[] arithmeticOperators = { "+", "-", "*", "/" };
-    static string studentName;
-    static bool hasLearningDifficulty;
-    static TimeSpan defaultTestDuration = TimeSpan.FromMinutes(45);
-    static TimeSpan extraTimeForDisability = TimeSpan.FromMinutes(15);
+    static Random random = new Random(); // Initialize random number generator
+    static HashSet<string> generatedQuestions = new HashSet<string>(); // Collection to store generated questions to avoid duplicates
+    static string[] arithmeticOperators = { "+", "-", "*", "/" }; // Array of arithmetic operators
+    static string studentName; // Variable to store student's name
+    static bool hasLearningDifficulty; // Flag indicating if student has learning difficulty
+    static TimeSpan defaultTestDuration = TimeSpan.FromMinutes(45); // Default duration of the test
+    static TimeSpan extraTimeForDisability = TimeSpan.FromMinutes(15); // Additional time given for students with learning difficulty
 
     static void Main(string[] args)
     {
         Console.WriteLine("Welcome to the Moeez's Primary School Mathematics Test App!");
 
-        // Prompt student for name
-        Console.Write("Enter your name: ");
-        studentName = Console.ReadLine();
+        // Ensure user enters their name
+        while (string.IsNullOrEmpty(studentName))
+        {
+            Console.Write("Enter your full name: ");
+            studentName = Console.ReadLine();
+
+            if (string.IsNullOrEmpty(studentName))
+            {
+                Console.WriteLine("Please enter your full name.");
+            }
+        }
 
         // Ask if the student has a learning difficulty
         Console.Write("Do you have a learning difficulty? (yes/no): ");
@@ -29,54 +37,58 @@ class MathTestApp
         TimeSpan testDuration = CalculateTestDuration();
 
         // Generate and present questions
-        Dictionary<string, double> questionAnswers = new Dictionary<string, double>();
-        List<string> questions = GenerateQuestions();
-        DateTime startTime = DateTime.Now;
-        int correctAnswers = 0;
+        Dictionary<string, double> questionAnswers = new Dictionary<string, double>(); // Dictionary to store question-answer pairs
+        List<string> questions = GenerateQuestions(); // Generate questions
+        DateTime startTime = DateTime.Now; // Record start time of the test
+        int correctAnswers = 0; // Counter for correct answers
 
-        Dictionary<string, bool> questionResults = new Dictionary<string, bool>();
+        Dictionary<string, bool> questionResults = new Dictionary<string, bool>(); // Dictionary to store question-result pairs
 
+        int questionNumber = 1;
         foreach (string question in questions)
         {
-            bool isCorrect = PresentQuestion(question, out double userAnswer);
-            questionAnswers.Add(question, userAnswer);
-            questionResults.Add(question, isCorrect);
+            bool isCorrect = PresentQuestion(questionNumber, question, out double userAnswer); // Present question to the user
+            questionAnswers.Add($"{questionNumber}. {question}", userAnswer); // Store question-answer pair
+            questionResults.Add($"{questionNumber}. {question}", isCorrect); // Store question-result pair
             if (isCorrect)
             {
-                correctAnswers++;
+                correctAnswers++; // Increment correct answer counter
             }
+            questionNumber++; // Increment question number
         }
 
         // Calculate and display results and time taken
-        DateTime endTime = DateTime.Now;
-        TimeSpan elapsedTime = endTime - startTime;
+        DateTime endTime = DateTime.Now; // Record end time of the test
+        TimeSpan elapsedTime = endTime - startTime; // Calculate elapsed time of the test
 
-        Console.WriteLine($"Test completed in {elapsedTime.TotalMinutes} minutes/seconds.");
+        Console.WriteLine($"Test completed in {elapsedTime.TotalMinutes} minutes/seconds."); // Display test completion time
 
-        string testResult = DetermineTestResult(correctAnswers);
-        Console.WriteLine($"Your test result: {testResult}");
+        string testResult = DetermineTestResult(correctAnswers); // Determine test result based on correct answers
+        Console.WriteLine($"Your test result: {testResult}"); // Display test result
 
         // Generate tutor report
-        GenerateTutorReport(questionAnswers, questionResults, testResult, elapsedTime, testDuration);
+        GenerateTutorReport(questionAnswers, questionResults, testResult, elapsedTime, testDuration); // Generate and save tutor report
 
-        Console.WriteLine("Thank you for taking the test!");
+        Console.WriteLine("Thank you for taking the test!"); // Display gratitude message
     }
 
+    // Method to generate a list of questions
     static List<string> GenerateQuestions()
     {
-        List<string> easyQuestions = GenerateEasyQuestions();
-        List<string> hardQuestions = GenerateHardQuestions();
+        List<string> easyQuestions = GenerateEasyQuestions(); // Generate easy questions
+        List<string> hardQuestions = GenerateHardQuestions(); // Generate hard questions
 
         List<string> questions = new List<string>();
-        questions.AddRange(easyQuestions);
-        questions.AddRange(hardQuestions);
+        questions.AddRange(easyQuestions); // Add easy questions to the list
+        questions.AddRange(hardQuestions); // Add hard questions to the list
 
-        // Shuffle the questions to randomise them
+        // Shuffle the questions to randomize them
         Shuffle(questions);
 
         return questions;
     }
 
+    // Method to generate easy questions
     static List<string> GenerateEasyQuestions()
     {
         List<string> easyQuestions = new List<string>();
@@ -99,6 +111,7 @@ class MathTestApp
         return easyQuestions;
     }
 
+    // Method to generate hard questions
     static List<string> GenerateHardQuestions()
     {
         List<string> hardQuestions = new List<string>();
@@ -121,6 +134,7 @@ class MathTestApp
         return hardQuestions;
     }
 
+    // Method to shuffle a list
     static void Shuffle<T>(IList<T> list)
     {
         int n = list.Count;
@@ -134,9 +148,10 @@ class MathTestApp
         }
     }
 
-    static bool PresentQuestion(string question, out double userAnswer)
+    // Method to present a question to the user
+    static bool PresentQuestion(int questionNumber, string question, out double userAnswer)
     {
-        Console.WriteLine(question);
+        Console.WriteLine($"Question {questionNumber}: {question}"); // Display the question number and the question
 
         bool validAnswer = false;
         userAnswer = 0;
@@ -164,6 +179,7 @@ class MathTestApp
         return isCorrect;
     }
 
+    // Method to calculate the correct answer for a given question
     static double CalculateAnswer(string question)
     {
         // Extract operands and operator from the question
@@ -193,6 +209,7 @@ class MathTestApp
         return answer;
     }
 
+    // Method to check if the user's answer is correct
     static bool CheckAnswer(double userAnswer, double correctAnswer)
     {
         // Check if the student's answer matches the correct answer within a small margin of error
@@ -200,6 +217,7 @@ class MathTestApp
         return Math.Abs(userAnswer - correctAnswer) < epsilon;
     }
 
+    // Method to determine the test result based on the number of correct answers
     static string DetermineTestResult(int correctAnswers)
     {
         string testResult;
@@ -215,6 +233,7 @@ class MathTestApp
         return testResult;
     }
 
+    // Method to calculate the test duration considering any extra time for students with learning difficulty
     static TimeSpan CalculateTestDuration()
     {
         TimeSpan testDuration = defaultTestDuration;
@@ -225,6 +244,7 @@ class MathTestApp
         return testDuration;
     }
 
+    // Method to generate and save a tutor report
     static void GenerateTutorReport(Dictionary<string, double> questionAnswers, Dictionary<string, bool> questionResults, string testResult, TimeSpan elapsedTime, TimeSpan testDuration)
     {
         // Generate tutor report containing student name, question details, results, and test duration time
@@ -238,7 +258,7 @@ class MathTestApp
             bool isCorrect = kvp.Value;
             string result = isCorrect ? "Correct" : "Incorrect";
             double userAnswer = questionAnswers[question];
-            report += $"\nQuestion: {question}\nAnswer: {userAnswer}\nResult: {result}\n";
+            report += $"\n{question}\nAnswer: {userAnswer}\nResult: {result}\n";
         }
 
         report += $"\nTest Result: {testResult}\n";
@@ -250,5 +270,4 @@ class MathTestApp
         File.WriteAllText(fileName, report);
         Console.WriteLine($"Tutor report saved as '{fileName}'.");
     }
-
 }
